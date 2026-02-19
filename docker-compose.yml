@@ -1,0 +1,93 @@
+services:
+  # Сервис бэкенда приложения
+  backend:
+    # Сборка образа из Dockerfile для бэкенда
+    build:
+      # context: указывает на корневую директорию, из которой Docker будет собирать контекст сборки.
+      # Включает все файлы и папки из этой директории, которые не исключены в .dockerignore.
+      # Значение '.' означает текущую директорию (где находится docker-compose.yml).
+      # Docker использует эту директорию для доступа к Dockerfile и другим файлам при построении образа.
+      context: .
+      dockerfile: Dockerfile.back
+    # Проброс портов: внешний 8080 -> внутренний 8080
+    ports:
+      - "3000:3000"
+    # Подключение переменных окружения из файла .env
+    env_file:
+      - ./backend/.env
+    # Зависимость: бэкенд запускается после БД
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Сервис фронтенда приложения
+  frontend:
+    # Сборка образа из Dockerfile для фронтенда
+    build:
+      context: .
+      dockerfile: Dockerfile.front
+    # Проброс портов: внешний 80 -> внутренний 80 (HTTP)
+    ports:
+      - "80:80"
+    # Зависимость: фронтенд запускается после бэкенда
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Сервис базы данных PostgreSQL
+  db:
+    # Использование официального образа PostgreSQL последней версии
+    image: postgres:18-alpine
+    # Подключение переменных окружения из файла .env
+    env_file:
+      - ./backend/.env
+    # Проброс портов: внешний 5432 -> внутренний 5432 (PostgreSQL)
+    ports:
+      - "5432:5432"
+    # Монтирование тома для сохранения каких-либо данных вне контейнеров (в данном случае, данные БД)
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Сервис кэша Redis
+  redis:
+    image: redis:8.2.1-alpine3.22
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    command:
+      [
+        "redis-server",
+        "--requirepass",
+        "${REDIS_PASSWORD:?REDIS_PASSWORD is not set}",
+        "--appendonly",
+        "yes",
+      ]
+    volumes:
+      - cache:/data
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli -a "$REDIS_PASSWORD" ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Сервис для администрирования базы данных через веб-интерфейс
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  # Определение именованного тома для хранения данных БД
+  db_data:

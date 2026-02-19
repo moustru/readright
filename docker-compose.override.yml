@@ -1,0 +1,27 @@
+# Зачем - эти настройки нужны для hot-reload. Они нужны нам только в разработке
+# При docker compose up будет подтягиваться эта override-версия, а прод будет собираться другой командой
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.back.dev
+    volumes:
+      # Монтируем исходники для hot-reload
+      - ./backend:/app
+      # Сохраняем node_modules внутри контейнера
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.front.dev
+    volumes:
+      # Монтируем исходники для hot-reload
+      - ./frontend:/app
+      # Сохраняем node_modules внутри контейнера
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
