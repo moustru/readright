@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Patch,
+  BadRequestException,
   // UseFilters,
   // UseGuards,
 } from '@nestjs/common';
@@ -86,7 +87,13 @@ export class NoteController {
   @ApiParam({ name: 'id', description: 'Идентификатор записи' })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.noteService.findOne(+id);
+    const noteId = parseInt(id, 10);
+
+    if (isNaN(noteId)) {
+      throw new BadRequestException('Invalid Note ID');
+    }
+
+    return this.noteService.findOne(noteId);
   }
 
   @ApiOperation({

@@ -13,8 +13,7 @@ services:
     ports:
       - "3000:3000"
     # Подключение переменных окружения из файла .env
-    env_file:
-      - ./backend/.env
+    env_file: .env
     # Зависимость: бэкенд запускается после БД
     depends_on:
       db:
@@ -42,8 +41,7 @@ services:
     # Использование официального образа PostgreSQL последней версии
     image: postgres:18-alpine
     # Подключение переменных окружения из файла .env
-    env_file:
-      - ./backend/.env
+    env_file: .env
     # Проброс портов: внешний 5432 -> внутренний 5432 (PostgreSQL)
     ports:
       - "5432:5432"
@@ -63,8 +61,7 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
-    env_file:
-      - ./backend/.env
+    env_file: .env
     command:
       [
         "redis-server",
@@ -91,3 +88,4 @@ services:
 volumes:
   # Определение именованного тома для хранения данных БД
   db_data:
+  cache:

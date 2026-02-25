@@ -3,17 +3,14 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note as NoteModel } from './models/note.model';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { NOTE_REPOSITORY_TOKEN } from './note.constants';
-import {
-  REDIS_CACHE_TIME,
-  REDIS_CLIENT_TOKEN,
-} from 'src/common/redis/redis.constants';
+import { REDIS_CACHE_TIME } from 'src/common/redis/redis.constants';
 import { RedisService } from 'src/common/redis/redis.service';
 
 @Injectable()
 export class NoteService {
   constructor(
     @Inject(NOTE_REPOSITORY_TOKEN) private noteRepository: typeof NoteModel,
-    @Inject(REDIS_CLIENT_TOKEN) private redisService: RedisService,
+    private redisService: RedisService,
   ) {}
 
   async create({ author, title, content }: CreateNoteDto) {
@@ -59,7 +56,10 @@ export class NoteService {
     }
 
     // Увеличиваем количество просмотров при каждом запросе заметки
-    await relatedNote.update({ views: relatedNote.views + 1 });
+    await relatedNote.increment('views');
+
+    // Перезагружаем объект из БД, чтобы получить актуальные данные
+    await relatedNote.reload();
 
     // Кэшируем заметку
     await this.redisService.set(`note:${id}`, relatedNote, REDIS_CACHE_TIME);
@@ -68,13 +68,15 @@ export class NoteService {
   }
 
   async update(id: number, { author, title, content }: UpdateNoteDto) {
-    await this.noteRepository.update(
-      { author, title, content, updated_at: new Date().toISOString() },
-      { where: { id } },
-    );
+    await Promise.all([
+      this.noteRepository.update(
+        { author, title, content, updated_at: new Date().toISOString() },
+        { where: { id } },
+      ),
 
-    // Удаляем кэшированную заметку при обновлении
-    await this.redisService.delete(`note:${id}`);
+      // Удаляем кэшированную заметку при обновлении
+      this.redisService.delete(`note:${id}`),
+    ]);
 
     return this.findOne(id);
   }

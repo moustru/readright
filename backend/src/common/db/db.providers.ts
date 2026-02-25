@@ -20,7 +20,8 @@ export const DbProviders = [
 
       sequelize.addModels([Note]);
 
-      await sequelize.sync();
+      await sequelize.query('DISCARD ALL;');
+      await sequelize.sync({ alter: true });
 
       return sequelize;
     },
