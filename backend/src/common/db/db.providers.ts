@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { Sequelize } from 'sequelize-typescript';
 import { Note } from 'src/app/note/models/note.model';
+import { User } from 'src/app/user/models/user.model';
 import { EnvConfig } from 'src/common/types/common.types';
 // import { User } from 'src/app/user/models/user.model';
 
@@ -18,10 +19,10 @@ export const DbProviders = [
         database: config.getOrThrow('POSTGRES_DB'),
       });
 
-      sequelize.addModels([Note]);
+      sequelize.addModels([Note, User]);
 
       await sequelize.query('DISCARD ALL;');
-      await sequelize.sync({ alter: true });
+      await sequelize.sync();
 
       return sequelize;
     },

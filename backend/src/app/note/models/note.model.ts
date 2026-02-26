@@ -2,10 +2,13 @@ import {
   AutoIncrement,
   Column,
   DataType,
+  ForeignKey,
+  IsUUID,
   Model,
   PrimaryKey,
   Table,
 } from 'sequelize-typescript';
+import { User } from 'src/app/user/models/user.model';
 
 @Table({
   timestamps: false,
@@ -18,10 +21,12 @@ export class Note extends Model {
   })
   declare id: number;
 
+  @ForeignKey(() => User)
+  @IsUUID(4)
   @Column({
     allowNull: false,
+    type: DataType.UUID,
   })
-  // @IsUUID(4)
   author: string;
 
   @Column({

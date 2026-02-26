@@ -7,7 +7,7 @@ const swaggerConfig = new DocumentBuilder()
   .setVersion('1.0.0')
   .setContact('Eugene M.', 'https://t.me/moustru', 'xexyz@yandex.ru')
   // Включает авторизацию в Swagger UI, добавляя кнопку "Authorize" и поле для ввода токена
-  // .addBearerAuth()
+  .addBearerAuth()
   .build();
 
 const getSwaggerDocument = (app: INestApplication) =>

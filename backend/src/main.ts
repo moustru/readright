@@ -5,11 +5,14 @@ import { LoggerMiddleware } from './common/middlewares/logger.middleware';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filters';
 import { SwaggerModule } from '@nestjs/swagger';
-import getSwaggerDocument from './docs';
+import getSwaggerDocument from './config/swagger.config';
+import cookieParser from 'cookie-parser';
 // import { AuthGuard } from './common/guards/auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(cookieParser());
 
   app.setGlobalPrefix('api');
 

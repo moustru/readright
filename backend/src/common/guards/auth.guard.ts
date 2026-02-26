@@ -1,24 +1,5 @@
-import {
-  type CanActivate,
-  type ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const request: Request = context.switchToHttp().getRequest();
-
-    const token = request.headers['authorization'] as string;
-
-    if (!token || !token.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Вы не авторизованы');
-    }
-
-    return true;
-  }
-}
+export class JwtGuard extends AuthGuard('jwt') {}
