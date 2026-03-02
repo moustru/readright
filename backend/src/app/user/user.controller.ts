@@ -9,18 +9,26 @@ import {
   Res,
 } from '@nestjs/common';
 import { LoginUserDto } from './dto/login.dto';
-import { UserService } from './user.service';
+import { UserService } from './services/user.service';
 import { RegisterUserDto } from './dto/register.dto';
 import { type Request, type Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { WithAuth } from 'src/common/decorators/auth.decorator';
 import { UserInfo } from 'src/common/decorators/user.decorator';
 import { User } from './models/user.model';
+import { LoginService } from './services/login.service';
+import { RegisterService } from './services/register.service';
+import { RefreshService } from './services/refresh.service';
 
 @ApiTags('Auth')
 @Controller()
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly loginService: LoginService,
+    private readonly registerService: RegisterService,
+    private readonly refreshService: RefreshService,
+  ) {}
 
   @ApiOperation({
     summary: 'Авторизация',
@@ -31,7 +39,7 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
     @Body() dto: LoginUserDto,
   ) {
-    return await this.userService.login(res, dto);
+    return await this.loginService.login(res, dto);
   }
 
   @ApiOperation({
@@ -43,7 +51,7 @@ export class UserController {
     @Res({ passthrough: true }) res: Response,
     @Body() dto: RegisterUserDto,
   ) {
-    return await this.userService.register(res, dto);
+    return await this.registerService.register(res, dto);
   }
 
   @ApiOperation({
@@ -55,7 +63,7 @@ export class UserController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return await this.userService.refresh(req, res);
+    return await this.refreshService.refresh(req, res);
   }
 
   @ApiOperation({
@@ -64,7 +72,7 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    return this.userService.logout(res);
+    return this.loginService.logout(res);
   }
 
   @WithAuth()

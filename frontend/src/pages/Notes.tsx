@@ -12,6 +12,8 @@ import { IconLogout, IconPlus } from '@tabler/icons-react';
 import { Note } from '../modules/Note/Note';
 import { useNavigate } from 'react-router';
 import { fetchNotes, useDeleteNote, useNotes } from '../store/notes.store';
+import { useLogout } from '../store/auth.store';
+import Cookies from 'js-cookie';
 
 export const Notes = () => {
   const theme = useMantineTheme();
@@ -22,6 +24,17 @@ export const Notes = () => {
   const { mutate: deleteNote } = useDeleteNote({
     onSuccess: () => fetchNotes(),
   });
+
+  const { mutate: logout } = useLogout({
+    onSuccess: () => {
+      Cookies.remove('accessToken');
+      window.location.href = '/';
+    },
+  });
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   const toNewNote = () => {
     navigate('/notes/new');
@@ -66,7 +79,13 @@ export const Notes = () => {
             Добавить запись
           </Button>
 
-          <ActionIcon variant="filled" color="red" size="xl" title="Выход">
+          <ActionIcon
+            variant="filled"
+            color="red"
+            size="xl"
+            title="Выход"
+            onClick={handleLogout}
+          >
             <IconLogout />
           </ActionIcon>
         </Flex>

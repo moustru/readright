@@ -19,7 +19,19 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   // Временно, потом настроим как надо
-  app.enableCors();
+  app.enableCors({
+    origin: (
+      origin: string,
+      callback: (error: Error | null, isAllowed: boolean) => void,
+    ) => {
+      if (origin.startsWith('http://localhost')) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'), false);
+    },
+    credentials: true,
+  });
 
   // Мидлвара логгера
   app.use(LoggerMiddleware);

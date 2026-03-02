@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
-import { UserService } from './user.service';
+import { UserService } from './services/user.service';
 import { UserProviders } from './user.providers';
 import { DbModule } from 'src/common/db/db.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -8,6 +8,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { getJwtConfig } from 'src/config/jwt.config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { LoginService } from './services/login.service';
+import { RegisterService } from './services/register.service';
+import { RefreshService } from './services/refresh.service';
 
 @Module({
   imports: [
@@ -21,7 +24,20 @@ import { PassportModule } from '@nestjs/passport';
     }),
   ],
   controllers: [UserController],
-  providers: [UserService, JwtStrategy, ...UserProviders],
-  exports: [UserService, ...UserProviders],
+  providers: [
+    UserService,
+    LoginService,
+    RegisterService,
+    RefreshService,
+    JwtStrategy,
+    ...UserProviders,
+  ],
+  exports: [
+    UserService,
+    LoginService,
+    RegisterService,
+    RefreshService,
+    ...UserProviders,
+  ],
 })
 export class UserModule {}

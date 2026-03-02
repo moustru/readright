@@ -1,3 +1,6 @@
+networks:
+  readright-network:
+
 services:
   # Сервис бэкенда приложения
   backend:
@@ -21,6 +24,8 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - readright-network
 
   # Сервис фронтенда приложения
   frontend:
@@ -35,6 +40,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - readright-network
 
   # Сервис базы данных PostgreSQL
   db:
@@ -54,6 +61,8 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - readright-network
 
   # Сервис кэша Redis
   redis:
@@ -77,6 +86,8 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    networks:
+      - readright-network
 
   # Сервис для администрирования базы данных через веб-интерфейс
   adminer:
@@ -84,6 +95,8 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
+    networks:
+      - readright-network
 
 volumes:
   # Определение именованного тома для хранения данных БД

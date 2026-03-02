@@ -7,7 +7,6 @@ import {
   Delete,
   Patch,
   BadRequestException,
-  UseGuards,
   // UseFilters,
   // UseGuards,
 } from '@nestjs/common';
@@ -22,11 +21,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { NoteRdo } from './rdo/note.rdo';
+import { WithAuth } from 'src/common/decorators/auth.decorator';
 // import { AllExceptionsFilter } from 'src/common/filters/all-exceptions.filters';
 // import { AuthGuard } from 'src/common/guards/auth.guard';
 // import { StringToLowercasePipe } from 'src/common/pipes/string-to-lowercase.pipe';
 
 @ApiTags('Notes')
+@WithAuth()
 @Controller('notes')
 export class NoteController {
   constructor(private readonly noteService: NoteService) {}
