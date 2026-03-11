@@ -41,7 +41,7 @@ export function createAxiosResponseInterceptor() {
 
   const errorHandler = async (error: AxiosError) => {
     if (error.response?.status !== 401) {
-      return Promise.reject(error);
+      return Promise.reject(error as Error);
     }
 
     if (!isRefreshing) {

@@ -1,12 +1,17 @@
 import { Container, Title } from '@mantine/core';
 import { NoteForm } from '../shared/NoteForm';
-import { useCreateNote } from '../store/notes.store';
+import { fetchNotes, useCreateNote } from '../store/notes.store';
 import { useNavigate } from 'react-router';
 
 export const NewNote = () => {
   const navigate = useNavigate();
   const { mutate: createNote, isPending: isCreatingNotePending } =
-    useCreateNote({ onSuccess: () => navigate('/') });
+    useCreateNote({
+      onSuccess: async () => {
+        await fetchNotes();
+        navigate('/');
+      },
+    });
 
   return (
     <Container>
@@ -15,7 +20,7 @@ export const NewNote = () => {
       </Title>
 
       <NoteForm
-        saveChanges={(note) => createNote({ author: 'moustru', ...note })}
+        saveChanges={createNote}
         cancel={() => navigate('/')}
         pendingState={isCreatingNotePending}
       />

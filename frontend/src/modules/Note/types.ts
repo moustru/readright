@@ -9,7 +9,6 @@ export type NoteDto = {
 };
 
 export type NoteRequest = {
-  author: string;
   title: string;
   content: string;
 };
@@ -18,7 +17,6 @@ export type NoteProps = {
   noteId: number;
   author: string;
   createdAt: string;
-  updatedAt: string;
   title: string;
   content: string;
   views: number;

@@ -19,12 +19,6 @@ export class NoteRdo {
   })
   created_at: string;
 
-  @ApiProperty({
-    description: 'Дата обновления',
-    example: '2024-01-15T10:30:00Z',
-  })
-  updated_at: string;
-
   @ApiPropertyOptional({
     description: 'Заголовок заметки',
     example: 'Моя первая заметка',

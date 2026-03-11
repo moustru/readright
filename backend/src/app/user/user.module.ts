@@ -16,7 +16,7 @@ import { RefreshService } from './services/refresh.service';
   imports: [
     DbModule,
     PassportModule,
-    ConfigModule.forRoot({ envFilePath: ['.env.development', '.env'] }),
+    ConfigModule.forRoot({ envFilePath: ['.env.development.local', '.env'] }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: getJwtConfig,

@@ -1,21 +1,25 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateNoteDto } from './dto/update-note.dto';
-import { Note as NoteModel } from './models/note.model';
+import { Note, Note as NoteModel } from './models/note.model';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { NOTE_REPOSITORY_TOKEN } from './note.constants';
-import { REDIS_CACHE_TIME } from 'src/common/redis/redis.constants';
-import { RedisService } from 'src/common/redis/redis.service';
+import { User } from '../user/models/user.model';
 
 @Injectable()
 export class NoteService {
   constructor(
-    @Inject(NOTE_REPOSITORY_TOKEN) private noteRepository: typeof NoteModel,
-    private redisService: RedisService,
+    @Inject(NOTE_REPOSITORY_TOKEN)
+    private readonly noteRepository: typeof NoteModel,
   ) {}
 
-  async create({ author, title, content }: CreateNoteDto) {
+  async create(user_id: string, { title, content }: CreateNoteDto) {
     await this.noteRepository.create({
-      author,
+      user_id,
       title,
       content,
       views: 0,
@@ -26,30 +30,28 @@ export class NoteService {
     return 'OK';
   }
 
-  async findAll() {
-    const cachedNotes = await this.redisService.getAll<NoteModel[]>('note:*');
+  async findAll(): Promise<Note[]> {
+    const notes = await this.noteRepository.findAll({
+      include: [
+        {
+          model: User,
+          required: false,
+        },
+      ],
+    });
 
-    if (!cachedNotes?.length) {
-      const notesData = await this.noteRepository.findAll();
-
-      if (!notesData) {
-        throw new NotFoundException();
-      }
-
-      return notesData;
-    }
-
-    return cachedNotes;
+    return notes;
   }
 
-  async findOne(id: number) {
-    const cachedNote = await this.redisService.get<NoteModel>(`note:${id}`);
-
-    if (cachedNote) {
-      return cachedNote;
-    }
-
-    const relatedNote = await this.noteRepository.findByPk(id);
+  async findOne(id: number): Promise<Note> {
+    const relatedNote = await this.noteRepository.findByPk(id, {
+      include: [
+        {
+          model: User,
+          required: false,
+        },
+      ],
+    });
 
     if (!relatedNote) {
       throw new NotFoundException();
@@ -61,27 +63,31 @@ export class NoteService {
     // Перезагружаем объект из БД, чтобы получить актуальные данные
     await relatedNote.reload();
 
-    // Кэшируем заметку
-    await this.redisService.set(`note:${id}`, relatedNote, REDIS_CACHE_TIME);
-
     return relatedNote;
   }
 
-  async update(id: number, { author, title, content }: UpdateNoteDto) {
-    await Promise.all([
-      this.noteRepository.update(
-        { author, title, content, updated_at: new Date().toISOString() },
-        { where: { id } },
-      ),
+  async update(user_id: string, id: number, { title, content }: UpdateNoteDto) {
+    const updatedNote = await this.noteRepository.findByPk(id);
 
-      // Удаляем кэшированную заметку при обновлении
-      this.redisService.delete(`note:${id}`),
-    ]);
+    if (updatedNote?.get().user_id !== user_id) {
+      throw new ForbiddenException('Не хватает прав для выполнения операции');
+    }
+
+    await this.noteRepository.update(
+      { title, content, updated_at: new Date().toISOString() },
+      { where: { id } },
+    );
 
     return this.findOne(id);
   }
 
-  async remove(id: number) {
+  async remove(user_id: string, id: number) {
+    const updatedNote = await this.noteRepository.findByPk(id);
+
+    if (updatedNote?.get().user_id !== user_id) {
+      throw new ForbiddenException('Не хватает прав для выполнения операции');
+    }
+
     await this.noteRepository.destroy({
       where: { id },
     });

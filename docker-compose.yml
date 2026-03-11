@@ -21,8 +21,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     restart: unless-stopped
     networks:
       - readright-network
@@ -64,37 +62,12 @@ services:
     networks:
       - readright-network
 
-  # Сервис кэша Redis
-  redis:
-    image: redis:8.2.1-alpine3.22
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-    env_file: .env
-    command:
-      [
-        "redis-server",
-        "--requirepass",
-        "${REDIS_PASSWORD:?REDIS_PASSWORD is not set}",
-        "--appendonly",
-        "yes",
-      ]
-    volumes:
-      - cache:/data
-    healthcheck:
-      test: ["CMD-SHELL", 'redis-cli -a "$REDIS_PASSWORD" ping']
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    networks:
-      - readright-network
-
   # Сервис для администрирования базы данных через веб-интерфейс
-  adminer:
-    image: adminer
+  pgadmin:
+    image: dpage/pgadmin4:9.8
+    env_file: .env
     ports:
-      - "8080:8080"
-    restart: unless-stopped
+      - 5050:80
     networks:
       - readright-network
 

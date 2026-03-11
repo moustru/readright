@@ -3,10 +3,12 @@ import { UUIDV4 } from 'sequelize';
 import {
   Column,
   DataType,
+  HasMany,
   Model,
   PrimaryKey,
   Table,
 } from 'sequelize-typescript';
+import { Note } from 'src/app/note/models/note.model';
 
 @Table({ tableName: 'users', timestamps: false })
 export class User extends Model {
@@ -42,4 +44,10 @@ export class User extends Model {
     allowNull: false,
   })
   declare updated_at: string;
+
+  @HasMany(() => Note, {
+    foreignKey: 'user_id',
+    sourceKey: 'user_id',
+  })
+  notes: Note[];
 }

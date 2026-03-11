@@ -4,10 +4,10 @@ import { useForm } from '@mantine/form';
 export function AuthForm({
   submit,
   isPending,
-}: {
+}: Readonly<{
   submit: ({ name, password }: { name: string; password: string }) => void;
   isPending: boolean;
-}) {
+}>) {
   const form = useForm<{ name: string; password: string }>({
     mode: 'uncontrolled',
   });

@@ -17,12 +17,20 @@ export function LoginPage() {
   };
 
   const { mutate: loginUser, isPending: isPendingLoginUser } = useLogin({
-    onSuccess: (data) => handleSuccessAuth(data!),
+    onSuccess: (data) => {
+      if (data) {
+        return handleSuccessAuth(data);
+      }
+    },
   });
 
   const { mutate: registerUser, isPending: isPendingRegisterUser } =
     useRegister({
-      onSuccess: (data) => handleSuccessAuth(data!),
+      onSuccess: (data) => {
+        if (data) {
+          return handleSuccessAuth(data);
+        }
+      },
     });
 
   const login = async (data: UserAuthRequest) => {

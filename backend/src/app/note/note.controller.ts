@@ -7,8 +7,11 @@ import {
   Delete,
   Patch,
   BadRequestException,
-  // UseFilters,
-  // UseGuards,
+  Req,
+  NotFoundException,
+  HttpStatus,
+  HttpCode,
+  UseInterceptors,
 } from '@nestjs/common';
 import { NoteService } from './note.service';
 import { CreateNoteDto } from './dto/create-note.dto';
@@ -22,9 +25,11 @@ import {
 } from '@nestjs/swagger';
 import { NoteRdo } from './rdo/note.rdo';
 import { WithAuth } from 'src/common/decorators/auth.decorator';
-// import { AllExceptionsFilter } from 'src/common/filters/all-exceptions.filters';
-// import { AuthGuard } from 'src/common/guards/auth.guard';
-// import { StringToLowercasePipe } from 'src/common/pipes/string-to-lowercase.pipe';
+import type { Request } from 'express';
+import { decode } from 'jsonwebtoken';
+import { JwtPayload } from '../user/interfaces/jwt.interface';
+import { NoteRdoInterceptor } from './interceptors/note-rdo.interceptor';
+import { Note } from './models/note.model';
 
 @ApiTags('Notes')
 @WithAuth()
@@ -32,34 +37,21 @@ import { WithAuth } from 'src/common/decorators/auth.decorator';
 export class NoteController {
   constructor(private readonly noteService: NoteService) {}
 
-  // Демонстрация точечного применения guard
-  // @UseGuards(AuthGuard)
-
-  // Демонстрация точечного применения filters
-  // @UseFilters(AllExceptionsFilter)
   @ApiOperation({
     summary: 'Создание записи',
   })
-  // @ApiBody({
-  //   description: 'Данные для создания записи',
-  //   schema: {
-  //     type: 'object',
-  //     properties: {
-  //       author: { type: 'string', example: 'user' },
-  //       title: { type: 'string', example: 'Заголовок заметки' },
-  //       content: { type: 'string', example: 'Содержимое заметки' },
-  //     },
-  //   },
-  // })
+  @HttpCode(HttpStatus.OK)
   @Post()
-  create(
-    @Body() dto: CreateNoteDto,
-    // Демонстрация пайпа
-    // @Body('author', StringToLowercasePipe) author: string,
-  ) {
-    // dto.author = author;
+  create(@Body() dto: CreateNoteDto, @Req() req: Request) {
+    const token = req.cookies['accessToken'] as string;
 
-    return this.noteService.create(dto);
+    const res = decode(token) as JwtPayload | null;
+
+    if (res) {
+      return this.noteService.create(res.user_id, dto);
+    } else {
+      return new NotFoundException('Пользователь не найден');
+    }
   }
 
   @ApiOperation({
@@ -72,7 +64,8 @@ export class NoteController {
     description: 'Записи не найдены',
   })
   @Get()
-  findAll() {
+  @UseInterceptors(NoteRdoInterceptor)
+  findAll(): Promise<Note[]> {
     return this.noteService.findAll();
   }
 
@@ -88,14 +81,15 @@ export class NoteController {
   })
   @ApiParam({ name: 'id', description: 'Идентификатор записи' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    const noteId = parseInt(id, 10);
+  @UseInterceptors(NoteRdoInterceptor)
+  async findOne(@Param('id') id: string): Promise<Note> {
+    const noteId = Number.parseInt(id, 10);
 
-    if (isNaN(noteId)) {
+    if (Number.isNaN(noteId)) {
       throw new BadRequestException('Invalid Note ID');
     }
 
-    return this.noteService.findOne(noteId);
+    return await this.noteService.findOne(noteId);
   }
 
   @ApiOperation({
@@ -103,8 +97,16 @@ export class NoteController {
   })
   @ApiParam({ name: 'id', description: 'Идентификатор записи' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateNoteDto) {
-    return this.noteService.update(+id, dto);
+  update(
+    @Param('id') id: string,
+    @Req() req: Request,
+    @Body() dto: UpdateNoteDto,
+  ) {
+    const token = req.cookies['accessToken'] as string;
+
+    const res = decode(token) as JwtPayload | null;
+
+    return this.noteService.update(res!.user_id, +id, dto);
   }
 
   @ApiOperation({
@@ -112,7 +114,11 @@ export class NoteController {
   })
   @ApiParam({ name: 'id', description: 'Идентификатор записи' })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.noteService.remove(+id);
+  remove(@Param('id') id: string, @Req() req: Request) {
+    const token = req.cookies['accessToken'] as string;
+
+    const res = decode(token) as JwtPayload | null;
+
+    return this.noteService.remove(res!.user_id, +id);
   }
 }

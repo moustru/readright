@@ -1,9 +1,9 @@
 import {
   AutoIncrement,
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
-  IsUUID,
   Model,
   PrimaryKey,
   Table,
@@ -11,6 +11,7 @@ import {
 import { User } from 'src/app/user/models/user.model';
 
 @Table({
+  tableName: 'notes',
   timestamps: false,
 })
 export class Note extends Model {
@@ -22,12 +23,17 @@ export class Note extends Model {
   declare id: number;
 
   @ForeignKey(() => User)
-  @IsUUID(4)
   @Column({
     allowNull: false,
     type: DataType.UUID,
   })
-  author: string;
+  user_id: string;
+
+  @BelongsTo(() => User, {
+    foreignKey: 'user_id',
+    targetKey: 'user_id',
+  })
+  user: User;
 
   @Column({
     type: DataType.DATE,
@@ -54,4 +60,8 @@ export class Note extends Model {
     defaultValue: 0,
   })
   views: number;
+
+  get author() {
+    return this.user.name;
+  }
 }

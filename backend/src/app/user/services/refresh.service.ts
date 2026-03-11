@@ -9,13 +9,14 @@ import { JwtPayload } from '../interfaces/jwt.interface';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../models/user.model';
 import { UserService } from './user.service';
+import { USER_REPOSITORY } from '../user.constants';
 
 @Injectable()
 export class RefreshService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
-    @Inject('USER_REPOSITORY') private readonly userRepository: typeof User,
+    @Inject(USER_REPOSITORY) private readonly userRepository: typeof User,
   ) {}
 
   async refresh(req: Request, res: Response) {
@@ -29,14 +30,14 @@ export class RefreshService {
 
     if (payload) {
       const relatedUser = await this.userRepository.findOne({
-        where: { name: payload.name },
+        where: { user_id: payload.user_id },
       });
 
       if (!relatedUser) {
         throw new NotFoundException('Пользователь не найден');
       }
 
-      return this.userService.auth(res, payload.name);
+      return this.userService.auth(res, payload.user_id);
     }
   }
 }

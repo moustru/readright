@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from '../interfaces/jwt.interface';
 import { type Response } from 'express';
 import { isDev } from 'src/utils/is-dev.util';
+import { USER_REPOSITORY } from '../user.constants';
 
 @Injectable()
 export class UserService {
@@ -19,7 +20,7 @@ export class UserService {
   private readonly COOKIE_DOMAIN: string;
 
   constructor(
-    @Inject('USER_REPOSITORY') private userRepository: typeof User,
+    @Inject(USER_REPOSITORY) private readonly userRepository: typeof User,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
   ) {
@@ -33,9 +34,9 @@ export class UserService {
     this.COOKIE_DOMAIN = configService.getOrThrow<string>('COOKIE_DOMAIN');
   }
 
-  private _generateTokens(name: string) {
+  private _generateTokens(user_id: string) {
     const payload: JwtPayload = {
-      name,
+      user_id,
     };
 
     const accessTtl = Number(this.JWT_ACCESS_TOKEN_TTL);
@@ -56,8 +57,10 @@ export class UserService {
     return { accessToken, refreshToken };
   }
 
-  async validate(name: string) {
-    const relatedUser = await this.userRepository.findOne({ where: { name } });
+  async validate(user_id: string) {
+    const relatedUser = await this.userRepository.findOne({
+      where: { user_id },
+    });
 
     if (!relatedUser) {
       throw new NotFoundException('Пользователь не найден');
@@ -66,8 +69,8 @@ export class UserService {
     return relatedUser;
   }
 
-  auth(res: Response, name: string) {
-    const { accessToken, refreshToken } = this._generateTokens(name);
+  auth(res: Response, user_id: string) {
+    const { accessToken, refreshToken } = this._generateTokens(user_id);
 
     this.setCookie(
       res,

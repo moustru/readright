@@ -3,10 +3,9 @@ import { NoteService } from './note.service';
 import { NoteController } from './note.controller';
 import { NoteProviders } from './note.providers';
 import { DbModule } from 'src/common/db/db.module';
-import { RedisModule } from 'src/common/redis/redis.module';
 
 @Module({
-  imports: [DbModule, RedisModule],
+  imports: [DbModule],
   controllers: [NoteController],
   providers: [NoteService, ...NoteProviders],
 })

@@ -25,23 +25,21 @@ export const router = createBrowserRouter([
         <Notes />
       </PrivateRoute>
     ),
-    children: [
-      {
-        path: ':id',
-        element: (
-          <PrivateRoute>
-            <NotePage />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: 'new',
-        element: (
-          <PrivateRoute>
-            <NewNote />
-          </PrivateRoute>
-        ),
-      },
-    ],
   },
+  {
+    path: '/notes/:id',
+    element: (
+      <PrivateRoute>
+        <NotePage />
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: '/notes/new',
+    element: (
+      <PrivateRoute>
+        <NewNote />
+      </PrivateRoute>
+    ),
+  }
 ]);

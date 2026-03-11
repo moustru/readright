@@ -3,7 +3,6 @@ import { AppModule } from './app/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { LoggerMiddleware } from './common/middlewares/logger.middleware';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filters';
 import { SwaggerModule } from '@nestjs/swagger';
 import getSwaggerDocument from './config/swagger.config';
 import cookieParser from 'cookie-parser';
@@ -24,6 +23,10 @@ async function bootstrap() {
       origin: string,
       callback: (error: Error | null, isAllowed: boolean) => void,
     ) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+
       if (origin.startsWith('http://localhost')) {
         return callback(null, true);
       }
@@ -40,8 +43,6 @@ async function bootstrap() {
   // app.useGlobalGuards(new AuthGuard());
 
   app.useGlobalInterceptors(new ResponseInterceptor());
-
-  app.useGlobalFilters(new AllExceptionsFilter());
 
   SwaggerModule.setup('/docs', app, getSwaggerDocument(app));
 

@@ -4,11 +4,12 @@ import { User } from '../models/user.model';
 import { verify } from 'argon2';
 import { UserService } from './user.service';
 import type { Response } from 'express';
+import { USER_REPOSITORY } from '../user.constants';
 
 @Injectable()
 export class LoginService {
   constructor(
-    @Inject('USER_REPOSITORY') private readonly userRepository: typeof User,
+    @Inject(USER_REPOSITORY) private readonly userRepository: typeof User,
     private readonly userService: UserService,
   ) {}
 
@@ -28,7 +29,7 @@ export class LoginService {
       throw new NotFoundException('Пользователь не найден 2');
     }
 
-    return this.userService.auth(res, name);
+    return this.userService.auth(res, relatedUser.user_id);
   }
 
   logout(res: Response) {

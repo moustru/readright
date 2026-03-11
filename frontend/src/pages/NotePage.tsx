@@ -14,8 +14,8 @@ export const NotePage = () => {
 
   const { mutate: updateNote, isPending: isUpdatingNotePending } =
     useUpdateNote({
-      onSuccess: async () => {
-        await fetchNote(+id!);
+      onSuccess: () => {
+        fetchNote(+id!);
         setEditMode(false);
       },
     });
@@ -47,7 +47,6 @@ export const NotePage = () => {
           initialValues={data}
           saveChanges={(note) =>
             updateNote({
-              author: 'moustru',
               title: note.title,
               content: note.content,
               id: id!,
@@ -62,9 +61,9 @@ export const NotePage = () => {
 
             <Text size="lg">Автор: {data?.author}</Text>
 
-            <Text size="lg">Дата создания: {data?.createdAt}</Text>
+            <Text size="lg">Написано: {data?.createdAt}</Text>
 
-            <Text size="lg">Дата последнего изменения: {data?.updatedAt}</Text>
+            <Text size="lg">Просмотров: {data?.views}</Text>
           </Stack>
 
           <Text mb={32}>{data?.content}</Text>

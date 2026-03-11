@@ -26,7 +26,14 @@ export function Note({
 
       <Text>{createdAt}</Text>
 
-      <Button color="red" w={100} onClick={() => deleteNote(noteId)}>
+      <Button
+        color="red"
+        w={100}
+        onClick={(e) => {
+          e.stopPropagation();
+          deleteNote(noteId);
+        }}
+      >
         Удалить
       </Button>
     </Stack>
